@@ -27,8 +27,8 @@
 	import arrowBtn from '../../public/svg/arrow-btn.svg';
 
 	export let cities = ['Guarulhos', 'Ribeirão Preto', 'São José do Rio Preto,'];
-	let filteredStartCities = cities;
-	let filteredEndCities = cities;
+	$: filteredStartCities = cities;
+	$: filteredEndCities = cities;
 	let startLocation = '';
 	let focusedStartLocation = false;
 	let endLocation = '';
@@ -97,7 +97,7 @@
 			return alert('Нужно выбрать конечную дату!');
 		}
 		const data = { startLocation, endLocation, startDate, endDate };
-		console.log('data :>> ', data);
+
 		e.target.dispatchEvent(
 			new CustomEvent('search', { detail: data, bubbles: true, cancelable: false, composed: true })
 		);
