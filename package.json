@@ -16,6 +16,7 @@
   "dependencies": {
     "date-fns": "^3.6.0",
     "sass": "^1.74.1",
-    "svelte-outclick": "^3.7.1"
+    "svelte-outclick": "^3.7.1",
+    "toastr": "^2.1.4"
   }
 }

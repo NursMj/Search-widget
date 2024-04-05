@@ -20,6 +20,7 @@
 		inRange,
 		getFormatedDate,
 	} from './dateUtils.js';
+    import toastr from 'toastr'
 
 	import check from '../../public/svg/check.svg';
 	import pin from '../../public/svg/pin.svg';
@@ -90,12 +91,15 @@
 
 	const handleSearch = (e) => {
 		if (!startLocation || !endLocation) {
-			return alert('Нужно выбрать локацию!');
+			return toastr.error('Нужно выбрать локацию!');
 		} else if (!startDate) {
-			return alert('Нужно выбрать дату!');
+			return toastr.error('Нужно выбрать дату!');
 		} else if (!checked && !endDate) {
-			return alert('Нужно выбрать конечную дату!');
+			return toastr.error('Нужно выбрать конечную дату!');
 		}
+        toastr.success('Ща будем искать!', {timeOut: 3000})
+        setTimeout(() => toastr.warning('Шутка это просто обманка'), 4000)
+        if (focusedDates) focusedDates = false
 		const data = { startLocation, endLocation, startDate, endDate };
 
 		e.target.dispatchEvent(
@@ -317,9 +321,9 @@
 								class="btn"
 								on:click={() => {
 									if (!startDate) {
-										return alert('Нужно выбрать дату!');
+										return toastr.error('Нужно выбрать дату!');
 									} else if (!checked && !endDate) {
-										return alert('Нужно выбрать конечную дату!');
+										return toastr.error('Нужно выбрать конечную дату!');
 									} else {
 										focusedDates = false;
 									}
