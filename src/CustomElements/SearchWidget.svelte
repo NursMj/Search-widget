@@ -1,4 +1,12 @@
-<svelte:options customElement="search-widget" />
+<svelte:options
+	customElement={{
+		tag: 'search-widget',
+		shadow: 'none',
+		props: {
+			name: { reflect: true, type: 'Array', attribute: 'cities' },
+		},
+	}}
+/>
 
 <script>
 	import { fade } from 'svelte/transition';
@@ -13,22 +21,23 @@
 		getFormatedDate,
 	} from './dateUtils.js';
 
-	import pin from './svg/pin.svg';
-	import calendar from './svg/calendar.svg';
-	import arrowBtn from './svg/arrow-btn.svg';
+	import check from '../../public/svg/check.svg';
+	import pin from '../../public/svg/pin.svg';
+	import calendar from '../../public/svg/calendar.svg';
+	import arrowBtn from '../../public/svg/arrow-btn.svg';
 
 	export let cities = ['Guarulhos', 'Ribeirão Preto', 'São José do Rio Preto,'];
 	let filteredStartCities = cities;
 	let filteredEndCities = cities;
-	let selectedStartLocation = '';
+	let startLocation = '';
 	let focusedStartLocation = false;
-	let selectedEndLocation = '';
+	let endLocation = '';
 	let focusedEndLocation = false;
 	let focusedDates = false;
 	let endInput;
 	let startInput;
 
-	let startMonth = new Date().toLocaleString('default', { month: 'long' });
+	let startMonth = new Date();
 	let endMonth = getNextMonth(startMonth);
 	let startDate = '';
 	let endDate = '';
@@ -70,22 +79,28 @@
 				startDate = day;
 			}
 		} else {
-            if (endDate === day) {
-                endDate = ''
-            } else {
-                endDate = day
-                checked = false
-            }
+			if (endDate === day) {
+				endDate = '';
+			} else {
+				endDate = day;
+				checked = false;
+			}
 		}
 	};
 
-	const handleSearch = () => {
-		const data = { selectedStartLocation, selectedEndLocation, startDate, endDate };
+	const handleSearch = (e) => {
+		if (!startLocation || !endLocation) {
+			return alert('Нужно выбрать локацию!');
+		} else if (!startDate) {
+			return alert('Нужно выбрать дату!');
+		} else if (!checked && !endDate) {
+			return alert('Нужно выбрать конечную дату!');
+		}
+		const data = { startLocation, endLocation, startDate, endDate };
 		console.log('data :>> ', data);
-	};
-
-	const showNotification = () => {
-		alert('Нужно выбрать дату!');
+		e.target.dispatchEvent(
+			new CustomEvent('search', { detail: data, bubbles: true, cancelable: false, composed: true })
+		);
 	};
 </script>
 
@@ -108,7 +123,7 @@
 					on:paste={onInput}
 					type="text"
 					bind:this={startInput}
-					bind:value={selectedStartLocation}
+					bind:value={startLocation}
 					placeholder="Выберите локацию"
 					name=""
 					id=""
@@ -130,9 +145,9 @@
 							<ul>
 								{#each filteredStartCities as city}
 									<li
-										class:selected={city === selectedStartLocation}
+										class:selected={city === startLocation}
 										on:click={() => {
-											selectedStartLocation = city;
+											startLocation = city;
 											focusedStartLocation = false;
 										}}
 									>
@@ -164,7 +179,7 @@
 					on:paste={onInput}
 					type="text"
 					bind:this={endInput}
-					bind:value={selectedEndLocation}
+					bind:value={endLocation}
 					placeholder="Выберите локацию"
 					name=""
 					id=""
@@ -187,9 +202,9 @@
 							<ul>
 								{#each filteredEndCities as city}
 									<li
-										class:selected={city === selectedEndLocation}
+										class:selected={city === endLocation}
 										on:click={() => {
-											selectedEndLocation = city;
+											endLocation = city;
 											focusedEndLocation = false;
 										}}
 									>
@@ -249,7 +264,7 @@
 										>
 											<img src={arrowBtn} alt="" />
 										</div>
-										<span>{month}</span>
+										<span>{month.toLocaleString('default', { month: 'long' })}</span>
 										<div
 											class="arrow-btn"
 											on:click={() =>
@@ -274,16 +289,15 @@
 													(i !== 0 && !startDate && endDate)}
 												class:first={i === 0 && startDate && endDate && day === startDate}
 												class:last={i !== 0 && startDate && endDate && day === endDate}
-												class:active={(startDate === day ||
+												class:active={startDate === day ||
 													endDate === day ||
-													inRange(startDate, endDate, day)) &&
-													isThisMonth(day, i === 0 ? startMonth : endMonth)}
+													inRange(startDate, endDate, day)}
 												class:disabled={!isThisMonth(day, i === 0 ? startMonth : endMonth) ||
 													isPast(day)}
 												class="day"
 												on:click={() => handlePickDate(i, day)}
 											>
-												{+day.slice(-2)}
+												{day.getDate()}
 											</div>
 										{/each}
 									</div>
@@ -293,14 +307,19 @@
 
 						<div class="calendars-footer">
 							<div class="checkbox">
-								<input type="checkbox" bind:checked />
-								<span>Без конечной даты</span>
+								<input type="checkbox" id="myCheckbox" bind:checked />
+								<label for="myCheckbox" class="checkbox-label">
+									<img src={check} alt="" />
+									Без конечной даты
+								</label>
 							</div>
 							<button
 								class="btn"
 								on:click={() => {
-									if (!checked && !endDate) {
-										showNotification();
+									if (!startDate) {
+										return alert('Нужно выбрать дату!');
+									} else if (!checked && !endDate) {
+										return alert('Нужно выбрать конечную дату!');
 									} else {
 										focusedDates = false;
 									}
@@ -570,8 +589,42 @@
 					.checkbox {
 						display: flex;
 						gap: 10px;
-						span {
+						input[type='checkbox'] {
+							display: none;
+						}
+						.checkbox-label {
 							font-size: 13px;
+							position: relative;
+							padding-left: 24px;
+							cursor: pointer;
+							-webkit-user-select: none;
+							-moz-user-select: none;
+							-ms-user-select: none;
+							user-select: none;
+						}
+
+						.checkbox-label::before {
+							content: '';
+							position: absolute;
+							top: 1px;
+							left: 0;
+							width: 14px;
+							height: 14px;
+							border: 1px solid #333333;
+							border-radius: 2px;
+							background-color: transparent;
+							box-sizing: border-box;
+						}
+
+						.checkbox-label img {
+							position: absolute;
+							top: 5.3px;
+							left: 3px;
+							display: none;
+						}
+
+						input[type='checkbox']:checked + .checkbox-label img {
+							display: block;
 						}
 					}
 

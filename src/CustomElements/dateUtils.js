@@ -9,25 +9,24 @@ import {
 	eachDayOfInterval,
 	startOfWeek,
 	endOfWeek,
+	addDays,
 } from 'date-fns';
 import { ru } from 'date-fns/locale';
 
 setDefaultOptions({ locale: ru });
 
 export function getPrevMonth(current) {
-	const currentDate = parse(current, 'MMMM', new Date());
-	const previousMonth = subMonths(currentDate, 1);
-	return format(previousMonth, 'LLLL');
+	const previousMonth = subMonths(current, 1);
+	return previousMonth;
 }
 
 export function getNextMonth(current) {
-	const currentDate = parse(current, 'MMMM', new Date());
-	const nextMonth = addMonths(currentDate, 1);
-	return format(nextMonth, 'LLLL');
+	const nextMonth = addMonths(current, 1);
+	return nextMonth;
 }
 
 export function getFormatedDate(date) {
-	return format(getDate(date), 'E MM/dd');
+	return format(date, 'E MM/dd');
 }
 
 export function getCalendar(month) {
@@ -41,37 +40,30 @@ export function getCalendar(month) {
 
 	// Format the dates for display
 	const formattedDates = allDaysOfCalendar.map((date) => format(date, 'yyyy-MM-dd'));
-	return formattedDates;
+	return allDaysOfCalendar;
 }
 
 export function isThisMonth(date, month) {
-	return format(new Date(date), 'LLLL').toLowerCase() === month.toLowerCase();
+	return format(new Date(date), 'LLLL').toLowerCase() === format(new Date(month), 'LLLL').toLowerCase();
 }
 
 export function isPast(date) {
-	const givenDate = new Date(date);
+	const givenDate = addDays(date, 1);
 	const currentDate = new Date();
 
 	return givenDate < currentDate
 }
 
 export function inRange(start, end, date) {
-	return getDate(date) >= getDate(start) && getDate(date) <= getDate(end)
+	if (!start || !end) return false
+	return date >= start && date <= end
 }
 
 function getAllDatesOfMonth(month) {
-	const monthIndex = parse(month, 'MMMM', new Date()).getMonth();
-	const currentYear = new Date().getFullYear();
-	const monthDate = new Date(currentYear, monthIndex, 1);
-
-	const startDate = startOfMonth(monthDate);
-	const endDate = endOfMonth(monthDate);
+	const startDate = startOfMonth(month);
+	const endDate = endOfMonth(month);
 
 	const allDatesOfMonth = eachDayOfInterval({ start: startDate, end: endDate });
 
 	return allDatesOfMonth;
-}
-
-function getDate(formatedDate) {
-	return new Date(formatedDate)
 }
